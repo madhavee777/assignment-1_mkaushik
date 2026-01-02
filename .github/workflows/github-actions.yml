@@ -1,5 +1,3 @@
-
-
 name: assignment-test
 on:
   push:
@@ -9,28 +7,31 @@ on:
       - '*'
 jobs:
   unit-test:
-    # Explicitly force the AMD64 architecture for the container
     container:
       image: cuaesd/aesd-autotest:24-unit-test
       options: --platform linux/amd64
     runs-on: self-hosted
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      # Bypass the broken Node.js injection by using raw git
+      - name: Manual Checkout
+        run: |
+          git clone https://github.com/${{ github.repository }}.git .
+          git checkout ${{ github.sha }}
       - name: Checkout submodules
         run: git submodule update --init --recursive
       - name: Run unit test
         run: ./unit-test.sh
 
   full-test:
-    # Explicitly force the AMD64 architecture for the container
     container:
       image: cuaesd/aesd-autotest:24-assignment1
       options: --platform linux/amd64
     runs-on: self-hosted
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Manual Checkout
+        run: |
+          git clone https://github.com/${{ github.repository }}.git .
+          git checkout ${{ github.sha }}
       - name: Checkout submodules
         run: git submodule update --init --recursive
       - name: Run full test
