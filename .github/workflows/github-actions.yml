@@ -2,10 +2,6 @@
 
 name: assignment-test
 on:
-    push:
-        tags-ignore:
-name: assignment-test
-on:
   push:
     tags-ignore:
       - '*'
