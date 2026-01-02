@@ -1,10 +1,7 @@
 name: assignment-test
 on:
   push:
-    tags-ignore:
-      - '*'
-    branches:
-      - '*'
+    branches: [ "*" ]
 jobs:
   unit-test:
     container:
@@ -12,11 +9,12 @@ jobs:
       options: --platform linux/amd64
     runs-on: self-hosted
     steps:
-      # Bypass the broken Node.js injection by using raw git
       - name: Manual Checkout
         run: |
-          git clone https://github.com/${{ github.repository }}.git .
-          git checkout ${{ github.sha }}
+          git init
+          git remote add origin https://github.com/${{ github.repository }}.git
+          git fetch --depth 1 origin ${{ github.sha }}
+          git checkout -f FETCH_HEAD
       - name: Checkout submodules
         run: git submodule update --init --recursive
       - name: Run unit test
@@ -30,8 +28,10 @@ jobs:
     steps:
       - name: Manual Checkout
         run: |
-          git clone https://github.com/${{ github.repository }}.git .
-          git checkout ${{ github.sha }}
+          git init
+          git remote add origin https://github.com/${{ github.repository }}.git
+          git fetch --depth 1 origin ${{ github.sha }}
+          git checkout -f FETCH_HEAD
       - name: Checkout submodules
         run: git submodule update --init --recursive
       - name: Run full test
