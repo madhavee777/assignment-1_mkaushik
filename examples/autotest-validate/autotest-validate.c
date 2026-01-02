@@ -1,3 +1,7 @@
+#include "auto-validate.h""
+#include <stdbool.h>
+#include <stddef.h>
+
 const char* my_username()
 {
 return "madhavee777";
