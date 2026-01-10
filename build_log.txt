@@ -1,0 +1,81 @@
++ set -e
++ set -u
++ OUTDIR=/home/mkaushik/aeld-output
++ KERNEL_REPO=git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
++ KERNEL_VERSION=v5.1.10
++ BUSYBOX_VERSION=1_33_1
++++ dirname ./manual-linux.sh
+++ realpath .
++ FINDER_APP_DIR=/home/mkaushik/Desktop/assignment-1_mkaushik
++ ARCH=arm64
++ CROSS_COMPILE=aarch64-linux-gnu-
++ '[' 0 -lt 1 ']'
++ echo 'Using default directory /home/mkaushik/aeld-output for output'
+Using default directory /home/mkaushik/aeld-output for output
++ mkdir -p /home/mkaushik/aeld-output
++ cd /home/mkaushik/aeld-output
++ '[' '!' -d /home/mkaushik/aeld-output/linux-stable ']'
++ echo 'CLONING GIT LINUX STABLE VERSION v5.1.10 IN /home/mkaushik/aeld-output'
+CLONING GIT LINUX STABLE VERSION v5.1.10 IN /home/mkaushik/aeld-output
++ git clone git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git --depth 1 --single-branch --branch v5.1.10
+Cloning into 'linux-stable'...
+warning: refs/tags/v5.1.10 94c10b8930302e7e6457c863a0b2ee7189f6b1b8 is not a commit!
+Note: switching to '7e1bdd68ffeecb9ef476f87b791b61910e8c853c'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+Updating files:  42% (27446/63878)Updating files:  43% (27468/63878)Updating files:  44% (28107/63878)Updating files:  45% (28746/63878)Updating files:  46% (29384/63878)Updating files:  47% (30023/63878)Updating files:  48% (30662/63878)Updating files:  49% (31301/63878)Updating files:  50% (31939/63878)Updating files:  51% (32578/63878)Updating files:  52% (33217/63878)Updating files:  53% (33856/63878)Updating files:  54% (34495/63878)Updating files:  55% (35133/63878)Updating files:  56% (35772/63878)Updating files:  57% (36411/63878)Updating files:  58% (37050/63878)Updating files:  59% (37689/63878)Updating files:  60% (38327/63878)Updating files:  61% (38966/63878)Updating files:  62% (39605/63878)Updating files:  63% (40244/63878)Updating files:  64% (40882/63878)Updating files:  65% (41521/63878)Updating files:  66% (42160/63878)Updating files:  66% (42435/63878)Updating files:  67% (42799/63878)Updating files:  68% (43438/63878)Updating files:  69% (44076/63878)Updating files:  70% (44715/63878)Updating files:  71% (45354/63878)Updating files:  72% (45993/63878)Updating files:  73% (46631/63878)Updating files:  74% (47270/63878)Updating files:  75% (47909/63878)Updating files:  76% (48548/63878)Updating files:  77% (49187/63878)Updating files:  78% (49825/63878)Updating files:  79% (50464/63878)Updating files:  80% (51103/63878)Updating files:  81% (51742/63878)Updating files:  82% (52380/63878)Updating files:  83% (53019/63878)Updating files:  84% (53658/63878)Updating files:  85% (54297/63878)Updating files:  86% (54936/63878)Updating files:  87% (55574/63878)Updating files:  88% (56213/63878)Updating files:  89% (56852/63878)Updating files:  90% (57491/63878)Updating files:  91% (58129/63878)Updating files:  92% (58768/63878)Updating files:  93% (59407/63878)Updating files:  94% (60046/63878)Updating files:  95% (60685/63878)Updating files:  96% (61323/63878)Updating files:  97% (61962/63878)Updating files:  98% (62601/63878)Updating files:  99% (63240/63878)Updating files: 100% (63878/63878)Updating files: 100% (63878/63878), done.
++ '[' '!' -e /home/mkaushik/aeld-output/linux-stable/arch/arm64/boot/Image ']'
++ cd linux-stable
++ echo 'Checking out version v5.1.10'
+Checking out version v5.1.10
++ git checkout v5.1.10
+HEAD is now at 7e1bdd68f Linux 5.1.10
++ echo 'Adding the Image in outdir'
+Adding the Image in outdir
++ echo 'Creating the staging directory for the root filesystem'
+Creating the staging directory for the root filesystem
++ cd /home/mkaushik/aeld-output
++ '[' -d /home/mkaushik/aeld-output/rootfs ']'
++ cd /home/mkaushik/aeld-output
++ '[' '!' -d /home/mkaushik/aeld-output/busybox ']'
++ git clone git://busybox.net/busybox.git
+Cloning into 'busybox'...
++ cd busybox
++ git checkout 1_33_1
+Note: switching to '1_33_1'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+HEAD is now at bcc5b0e6c Bump version to 1.33.1
++ echo 'Library dependencies'
+Library dependencies
++ aarch64-linux-gnu-readelf -a bin/busybox
++ grep 'program interpreter'
+readelf: Error: 'bin/busybox': No such file
