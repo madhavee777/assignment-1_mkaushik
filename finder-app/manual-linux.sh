@@ -63,14 +63,14 @@ if [ -z "$SYSROOT" ]; then
     SYSROOT="/usr/aarch64-linux-gnu"
 fi
 
-# Create all possible library paths to prevent Kernel Panic
+# Create all necessary library directories
 mkdir -p ${OUTDIR}/rootfs/lib
 mkdir -p ${OUTDIR}/rootfs/lib64
+mkdir -p ${OUTDIR}/rootfs/usr/lib
 mkdir -p ${OUTDIR}/rootfs/lib/aarch64-linux-gnu
 
 find_and_copy() {
     local lib=$1
-    # Try searching in sysroot first, then local cross-compiler paths
     local path=$(find $SYSROOT -name "$lib" -print -quit)
     if [ -z "$path" ]; then
         path=$(find /lib/aarch64-linux-gnu /usr/lib/aarch64-linux-gnu -name "$lib" -print -quit 2>/dev/null || true)
@@ -78,19 +78,25 @@ find_and_copy() {
 
     if [ ! -z "$path" ]; then
         echo "Found $lib at $path"
-        cp -v -L "$path" "${OUTDIR}/rootfs/lib/"
-        cp -v -L "$path" "${OUTDIR}/rootfs/lib64/"
-        cp -v -L "$path" "${OUTDIR}/rootfs/lib/aarch64-linux-gnu/"
+        # Copy to all standard locations to be absolutely sure
+        cp -v -P "$path"* "${OUTDIR}/rootfs/lib/"
+        cp -v -P "$path"* "${OUTDIR}/rootfs/lib64/"
+        cp -v -P "$path"* "${OUTDIR}/rootfs/usr/lib/"
     else
         echo "Error: Could not find $lib"
         exit 1
     fi
 }
 
+# Copy the libraries
 find_and_copy "ld-linux-aarch64.so.1"
 find_and_copy "libm.so.6"
 find_and_copy "libresolv.so.2"
 find_and_copy "libc.so.6"
+
+# MANDATORY SYMLINK: Many binaries look for the loader specifically here
+cd ${OUTDIR}/rootfs/lib
+ln -sf ld-linux-aarch64.so.1 ld-2.31.so || true # Try to link to versioned name if possible
 
 # --- DEVICE NODES ---
 sudo mknod -m 666 ${OUTDIR}/rootfs/dev/null c 1 3
