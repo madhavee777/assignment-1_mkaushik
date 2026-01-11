@@ -1,8 +1,5 @@
 #!/bin/bash
-# Script outline to install and build kernel.
-# Author: Siddhant Jajoo.
-# Updated for M4 Mac and GitHub Autograder compatibility.
-
+# Final Robust manual-linux.sh for Assignment 3 Part 2
 set -e
 set -u
 
@@ -27,7 +24,6 @@ cd "$OUTDIR"
 if [ ! -d "${OUTDIR}/linux-stable" ]; then
     git clone ${KERNEL_REPO} --depth 1 --single-branch --branch ${KERNEL_VERSION}
 fi
-
 if [ ! -e ${OUTDIR}/linux-stable/arch/${ARCH}/boot/Image ]; then
     cd linux-stable
     make ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} mrproper
@@ -56,76 +52,64 @@ sed -i 's/CONFIG_TC=y/CONFIG_TC=n/' .config
 make ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE}
 make ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} CONFIG_PREFIX=${OUTDIR}/rootfs install
 
-# --- LIBRARIES ---
+# --- LIBRARIES (THE ROBUST FIX) ---
 echo "Finding and copying shared libraries..."
+# Get the sysroot from the compiler
 SYSROOT=$(${CROSS_COMPILE}gcc -print-sysroot)
+
+# If sysroot is empty, use the common cross-lib directory
 if [ -z "$SYSROOT" ]; then
     SYSROOT="/usr/aarch64-linux-gnu"
 fi
 
-# Create all necessary library directories
-mkdir -p ${OUTDIR}/rootfs/lib
-mkdir -p ${OUTDIR}/rootfs/lib64
-mkdir -p ${OUTDIR}/rootfs/usr/lib
-mkdir -p ${OUTDIR}/rootfs/lib/aarch64-linux-gnu
+# List of potential paths where libraries might live on Ubuntu/Debian
+SEARCH_PATHS="$SYSROOT/lib $SYSROOT/lib64 /usr/aarch64-linux-gnu/lib /usr/lib/aarch64-linux-gnu"
 
-find_and_copy() {
-    local lib=$1
-    local path=$(find $SYSROOT -name "$lib" -print -quit)
-    if [ -z "$path" ]; then
-        path=$(find /lib/aarch64-linux-gnu /usr/lib/aarch64-linux-gnu -name "$lib" -print -quit 2>/dev/null || true)
-    fi
+for lib in ld-linux-aarch64.so.1 libm.so.6 libresolv.so.2 libc.so.6; do
+    echo "Searching for $lib..."
+    LIB_PATH=""
+    for search_path in $SEARCH_PATHS; do
+        if [ -f "$search_path/$lib" ]; then
+            LIB_PATH="$search_path/$lib"
+            break
+        fi
+    done
 
-    if [ ! -z "$path" ]; then
-        echo "Found $lib at $path"
-        # Copy to all standard locations to be absolutely sure
-        cp -v -P "$path"* "${OUTDIR}/rootfs/lib/"
-        cp -v -P "$path"* "${OUTDIR}/rootfs/lib64/"
-        cp -v -P "$path"* "${OUTDIR}/rootfs/usr/lib/"
+    if [ -n "$LIB_PATH" ]; then
+        echo "Found $lib at $LIB_PATH"
+        cp -aL "$LIB_PATH" "${OUTDIR}/rootfs/lib/"
+        cp -aL "$LIB_PATH" "${OUTDIR}/rootfs/lib64/"
     else
-        echo "Error: Could not find $lib"
+        echo "ERROR: Could not find $lib in any of the search paths."
         exit 1
     fi
-}
-
-# Copy the libraries
-find_and_copy "ld-linux-aarch64.so.1"
-find_and_copy "libm.so.6"
-find_and_copy "libresolv.so.2"
-find_and_copy "libc.so.6"
-
-# MANDATORY SYMLINK: Many binaries look for the loader specifically here
-cd ${OUTDIR}/rootfs/lib
-ln -sf ld-linux-aarch64.so.1 ld-2.31.so || true # Try to link to versioned name if possible
+done
 
 # --- DEVICE NODES ---
-sudo mknod -m 666 ${OUTDIR}/rootfs/dev/null c 1 3
-sudo mknod -m 600 ${OUTDIR}/rootfs/dev/console c 5 1
+cd ${OUTDIR}/rootfs
+sudo mknod -m 666 dev/null c 1 3
+sudo mknod -m 600 dev/console c 5 1
 
 # --- INSTALLATION ---
 cd ${FINDER_APP_DIR}
 make clean
 make CROSS_COMPILE=${CROSS_COMPILE}
 
-cp writer ${OUTDIR}/rootfs/home/
+cp writer finder.sh finder-test.sh autorun-qemu.sh ${OUTDIR}/rootfs/home/
 cp writer ${OUTDIR}/rootfs/home/writer.sh
-cp finder.sh finder-test.sh autorun-qemu.sh ${OUTDIR}/rootfs/home/
 
-# Setup conf files
 mkdir -p ${OUTDIR}/rootfs/home/conf
 mkdir -p ${OUTDIR}/rootfs/conf
-cp ../conf/assignment.txt ../conf/username.txt ${OUTDIR}/rootfs/home/conf/
-cp ../conf/assignment.txt ../conf/username.txt ${OUTDIR}/rootfs/conf/
+cp ../conf/*.txt ${OUTDIR}/rootfs/home/conf/
+cp ../conf/*.txt ${OUTDIR}/rootfs/conf/
 
-# Fix shebangs for BusyBox (no bash in busybox)
 sed -i 's/#!.*bash/#! \/bin\/sh/' ${OUTDIR}/rootfs/home/*.sh
 
 # --- PACKAGE ---
 cd ${OUTDIR}/rootfs
 sudo chown -R root:root *
-find . | cpio -H newc -ov --owner root:root > ${OUTDIR}/initramfs.cpio
+find . | sudo cpio -H newc -ov --owner root:root > ${OUTDIR}/initramfs.cpio
 cd ${OUTDIR}
 gzip -f initramfs.cpio
-
 
 
