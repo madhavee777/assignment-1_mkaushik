@@ -48,14 +48,15 @@ mkdir -p bin dev etc home lib lib64 proc sbin sys tmp usr var usr/bin usr/lib us
 # --- BUSYBOX ---
 cd "$OUTDIR"
 if [ ! -d "${OUTDIR}/busybox" ]; then
-    git clone git://busybox.net/busybox.git
+    # Use the stable GitHub mirror instead of git.busybox.net
+    git clone https://github.com/mirror/busybox.git --depth 1 --single-branch --branch ${BUSYBOX_VERSION}
     cd busybox
-    git checkout ${BUSYBOX_VERSION}
-    make distclean
-    make defconfig
+    # If the tag format in the mirror is different, you might need to adjust:
+    # git checkout ${BUSYBOX_VERSION} 
 else
     cd busybox
 fi
+
 sed -i 's/CONFIG_TC=y/CONFIG_TC=n/' .config
 make ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE}
 make ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} CONFIG_PREFIX=${OUTDIR}/rootfs install

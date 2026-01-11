@@ -48,25 +48,32 @@ mkdir -p bin dev etc home lib lib64 proc sbin sys tmp usr var usr/bin usr/lib us
 # --- BUSYBOX ---
 cd "$OUTDIR"
 if [ ! -d "${OUTDIR}/busybox" ]; then
-    git clone git://busybox.net/busybox.git
+    # Use the stable GitHub mirror instead of git.busybox.net
+    git clone https://github.com/mirror/busybox.git --depth 1 --single-branch --branch ${BUSYBOX_VERSION}
     cd busybox
-    git checkout ${BUSYBOX_VERSION}
-    make distclean
-    make defconfig
+    # If the tag format in the mirror is different, you might need to adjust:
+    # git checkout ${BUSYBOX_VERSION} 
 else
     cd busybox
 fi
+
 sed -i 's/CONFIG_TC=y/CONFIG_TC=n/' .config
 make ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE}
 make ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} CONFIG_PREFIX=${OUTDIR}/rootfs install
 
 # --- LIBRARIES ---
-TC_LIB_PATH="/lib/aarch64-linux-gnu"
-cp -L ${TC_LIB_PATH}/ld-linux-aarch64.so.1 ${OUTDIR}/rootfs/lib/
-cp -L ${TC_LIB_PATH}/ld-linux-aarch64.so.1 ${OUTDIR}/rootfs/lib64/
-cp -L ${TC_LIB_PATH}/libm.so.6 ${OUTDIR}/rootfs/lib/
-cp -L ${TC_LIB_PATH}/libresolv.so.2 ${OUTDIR}/rootfs/lib/
-cp -L ${TC_LIB_PATH}/libc.so.6 ${OUTDIR}/rootfs/lib/
+echo "Finding and copying shared libraries..."
+
+# Ask the compiler for its sysroot path (the "root" of its library world)
+SYSROOT=$(${CROSS_COMPILE}gcc -print-sysroot)
+
+# Now copy the libraries using that dynamic path
+# Note: On some systems they are in /lib, on others in /lib64
+cp -L ${SYSROOT}/lib/ld-linux-aarch64.so.1 ${OUTDIR}/rootfs/lib/
+cp -L ${SYSROOT}/lib/ld-linux-aarch64.so.1 ${OUTDIR}/rootfs/lib64/
+cp -L ${SYSROOT}/lib64/libm.so.6 ${OUTDIR}/rootfs/lib/
+cp -L ${SYSROOT}/lib64/libresolv.so.2 ${OUTDIR}/rootfs/lib/
+cp -L ${SYSROOT}/lib64/libc.so.6 ${OUTDIR}/rootfs/lib/
 
 # --- DEVICE NODES ---
 sudo mknod -m 666 ${OUTDIR}/rootfs/dev/null c 1 3
@@ -80,20 +87,23 @@ make CROSS_COMPILE=${CROSS_COMPILE}
 # --- THE FINAL SANITIZED INSTALLATION ---
 echo "Installing application and scripts to rootfs..."
 
-# Copy everything to /home
-cp ${FINDER_APP_DIR}/finder-app/writer          ${OUTDIR}/rootfs/home/
-cp ${FINDER_APP_DIR}/finder-app/writer          ${OUTDIR}/rootfs/home/writer.sh
-cp ${FINDER_APP_DIR}/finder-app/finder.sh       ${OUTDIR}/rootfs/home/
-cp ${FINDER_APP_DIR}/finder-app/finder-test.sh  ${OUTDIR}/rootfs/home/
-cp ${FINDER_APP_DIR}/finder-app/autorun-qemu.sh ${OUTDIR}/rootfs/home/
+# Since the script is now in finder-app/
+# FINDER_APP_DIR=$(realpath $(dirname $0)) will be the finder-app folder.
 
-# Handle configuration files (Parent and Home locations)
+# 1. Copy App files (Source is now current directory)
+cp ${FINDER_APP_DIR}/writer         ${OUTDIR}/rootfs/home/
+cp ${FINDER_APP_DIR}/writer         ${OUTDIR}/rootfs/home/writer.sh
+cp ${FINDER_APP_DIR}/finder.sh      ${OUTDIR}/rootfs/home/
+cp ${FINDER_APP_DIR}/finder-test.sh ${OUTDIR}/rootfs/home/
+cp ${FINDER_APP_DIR}/autorun-qemu.sh ${OUTDIR}/rootfs/home/
+
+# 2. Handle Configuration files (Source is one level up)
 mkdir -p ${OUTDIR}/rootfs/home/conf
 mkdir -p ${OUTDIR}/rootfs/conf
-cp ${FINDER_APP_DIR}/conf/username.txt   ${OUTDIR}/rootfs/home/conf/
-cp ${FINDER_APP_DIR}/conf/assignment.txt ${OUTDIR}/rootfs/home/conf/
-cp ${FINDER_APP_DIR}/conf/username.txt   ${OUTDIR}/rootfs/conf/
-cp ${FINDER_APP_DIR}/conf/assignment.txt ${OUTDIR}/rootfs/conf/
+cp ${FINDER_APP_DIR}/../conf/username.txt   ${OUTDIR}/rootfs/home/conf/
+cp ${FINDER_APP_DIR}/../conf/assignment.txt ${OUTDIR}/rootfs/home/conf/
+cp ${FINDER_APP_DIR}/../conf/username.txt   ${OUTDIR}/rootfs/conf/
+cp ${FINDER_APP_DIR}/../conf/assignment.txt ${OUTDIR}/rootfs/conf/
 
 # The "Success" Fix: Sanitize shebangs and line endings inside the staging area
 echo "Sanitizing scripts for BusyBox..."
