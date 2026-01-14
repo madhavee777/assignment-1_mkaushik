@@ -1,3 +1,5 @@
+
+
 name: assignment-test
 
 on:
@@ -16,10 +18,18 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-      - name: Checkout submodules (Manual Backup)
-        run: git submodule update --init --recursive
+      
+      # FIX: Install the tools that unit-test.sh needs
+      - name: Install Build Tools
+        run: |
+          apt-get update
+          apt-get install -y cmake ruby
+
+      # FIX: Run the shell script we verified locally
       - name: Run unit test
-        run: /usr/bin/python3 /app/autotest/autotest.py --test_path=examples/threading
+        run: |
+          chmod +x unit-test.sh
+          ./unit-test.sh
 
   # Job 2: Grades your Buildroot setup (Assignment 4 Part 2)
   full-test:
