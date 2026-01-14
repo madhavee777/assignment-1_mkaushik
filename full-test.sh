@@ -2,6 +2,9 @@
 # Stop on errors
 set -e
 
+# FIX: Tell build tools it is okay to run as root
+export FORCE_UNSAFE_CONFIGURE=1
+
 echo "------------------------------------------------"
 echo "  Starting Assignment 4 Full Test (Buildroot)"
 echo "------------------------------------------------"
@@ -9,9 +12,7 @@ echo "------------------------------------------------"
 # 1. Enter the directory
 cd buildroot
 
-# 2. Configure Buildroot (The Missing Step)
-#    This tells Buildroot to use your settings from 'base_external'
-#    and creates the .config file.
+# 2. Configure Buildroot
 echo "Loading configuration..."
 make BR2_EXTERNAL=../base_external aesd_qemu_defconfig
 
