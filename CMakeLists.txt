@@ -1,17 +1,27 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.10)
 project(aesd-assignments)
-# A list of all automated test source files
-# At minimum it should include the files in the test/assignmentX directory
-# Students can also add paths to their own test files using a ../ prefix to
-# reference this working directory
-set(AUTOTEST_SOURCES
-    test/assignment1/Test_hello.c
-    test/assignment1/Test_assignment_validate.c
-    test/assignment3/Test_systemcalls.c
-)
-# A list of all files containing test code that is used for assignment validation
+
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -g -Wall -Wno-error")
+
+# 1. Student Code (Your implementation)
+#    Use "../" because the build happens inside the submodule, 
+#    so it needs to step up to the root to find your examples folder.
 set(TESTED_SOURCE
-    ../examples/autotest-validate/autotest-validate.c
+    ../examples/threading/threading.c
     ../examples/systemcalls/systemcalls.c
 )
+
+# 2. Test Code (The Grader's Code)
+#    Do NOT include "assignment-autotest/" in the path.
+#    The build is already running inside that folder.
+set(AUTOTEST_SOURCES
+    test/assignment4/Test_threading.c
+    test/assignment3/Test_systemcalls.c
+)
+
+# 3. Add the testing framework
 add_subdirectory(assignment-autotest)
+
+
+
