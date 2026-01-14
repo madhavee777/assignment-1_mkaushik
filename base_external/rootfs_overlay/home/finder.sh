@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # IF Number of args is 2
 if [ $# -eq 2 ]; then
 

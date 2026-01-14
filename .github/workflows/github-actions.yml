@@ -1,42 +1,38 @@
-
-
 name: assignment-test
+
 on:
-    push:
-        tags-ignore:
-            - '*'
-        branches:
-            - '*'
+  push:
+    tags-ignore:
+      - '*'
+    branches:
+      - '*'
+
 jobs:
-    unit-test:
-        container: cuaesd/aesd-autotest:24-unit-test
-        runs-on: ubuntu-latest
-        steps:
-          - uses: actions/checkout@v2
-            with:
-              submodules: true
-              # optional but recommended to ensure you get the right branch
-              fetch-depth: 0
-          - name: Checkout submodules
-            run : git submodule update --init --recursive
-          - name: Run unit test
-            run: ./unit-test.sh
-    full-test:
-        container: cuaesd/aesd-autotest:24-assignment3
-        runs-on: ubuntu-latest
-        steps:
-          - uses: actions/checkout@v2
-            with:
-              submodules: recursive
+  # Job 1: Grades your Threading code (Assignment 4 Part 1)
+  unit-test:
+    runs-on: ubuntu-latest
+    container: cuaesd/aesd-autotest:24-unit-test
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Checkout submodules (Manual Backup)
+        run: git submodule update --init --recursive
+      - name: Run unit test
+        run: /usr/bin/python3 /app/autotest/autotest.py --test_path=examples/threading
 
-      # --- ADD THIS STEP HERE ---
-          - name: Install cross-compiler and dependencies
-            run: |
-              sudo apt-get update
-              sudo apt-get install -y gcc-aarch64-linux-gnu bc u-boot-tools qemu-system-arm
-      # --------------------------
+  # Job 2: Grades your Buildroot setup (Assignment 4 Part 2)
+  full-test:
+    runs-on: ubuntu-latest
+    container: cuaesd/aesd-autotest:24-assignment4-buildroot
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Run full test
+        run: ./full-test.sh
 
-          - name: Run full test
-            run: ./full-test.sh
+
 
 
