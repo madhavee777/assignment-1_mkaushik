@@ -1,1 +1,1 @@
-source "$BR2_EXTERNAL_AESD_PATH/package/aesd-assignments/Config.in"
+source "/home/mkaushik/Desktop/assignment-1_mkaushik/base_external/package/aesd-assignments/Config.in"
