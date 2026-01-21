@@ -1,5 +1,6 @@
 
 
+
 name: assignment-test
 
 on:
@@ -10,39 +11,21 @@ on:
       - '*'
 
 jobs:
-  # Job 1: Grades your Threading code (Assignment 4 Part 1)
-  unit-test:
-    runs-on: ubuntu-latest
-    container: cuaesd/aesd-autotest:24-unit-test
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: recursive
-      
-      # FIX: Install the tools that unit-test.sh needs
-      - name: Install Build Tools
-        run: |
-          apt-get update
-          apt-get install -y cmake ruby
-
-      # FIX: Run the shell script we verified locally
-      - name: Run unit test
-        run: |
-          chmod +x unit-test.sh
-          ./unit-test.sh
-
-  # Job 2: Grades your Buildroot setup (Assignment 4 Part 2)
-  full-test:
-    runs-on: ubuntu-latest
-    container: cuaesd/aesd-autotest:24-assignment4-buildroot
-    timeout-minutes: 120
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: recursive
-      - name: Run full test
-        run: ./full-test.sh
-
-
-
-
+    unit-test:
+        container: cuaesd/aesd-autotest:24-unit-test
+        runs-on: self-hosted
+        steps:
+          - uses: actions/checkout@v2
+          - name: Checkout submodules
+            run : git submodule update --init --recursive
+          - name: Run unit test
+            run: ./unit-test.sh
+    full-test:
+        container: cuaesd/aesd-autotest:24-assignment5
+        runs-on: self-hosted
+        steps:
+          - uses: actions/checkout@v2
+          - name: Checkout submodules
+            run : git submodule update --init --recursive
+          - name: Run full test
+            run: ./full-test.sh
