@@ -28,9 +28,6 @@ jobs:
       - name: Install missing dependencies
         run: |
           apt-get update
-          apt-get install -y file sshpass
+          apt-get install -y file sshpass cpio unzio rsync bc
       - name: Run full test
         run: ./full-test.sh
-
-
-
