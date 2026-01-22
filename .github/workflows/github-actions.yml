@@ -1,6 +1,3 @@
-
-
-
 name: assignment-test
 
 on:
@@ -11,21 +8,29 @@ on:
       - '*'
 
 jobs:
-    unit-test:
-        container: cuaesd/aesd-autotest:24-unit-test
-        runs-on: ubuntu-latest
-        steps:
-          - uses: actions/checkout@v2
-          - name: Checkout submodules
-            run : git submodule update --init --recursive
-          - name: Run unit test
-            run: ./unit-test.sh
-    full-test:
-        container: cuaesd/aesd-autotest:24-assignment5
-        runs-on: ubuntu-latest
-        steps:
-          - uses: actions/checkout@v2
-          - name: Checkout submodules
-            run : git submodule update --init --recursive
-          - name: Run full test
-            run: ./full-test.sh
+  unit-test:
+    container: cuaesd/aesd-autotest:24-unit-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
+      - name: Run unit test
+        run: ./unit-test.sh
+
+  full-test:
+    container: cuaesd/aesd-autotest:24-assignment5
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
+      - name: Install missing dependencies
+        run: |
+          apt-get update
+          apt-get install -y file sshpass
+      - name: Run full test
+        run: ./full-test.sh
+
+
+
