@@ -1,0 +1,26 @@
+#! /bin/sh
+
+case "$1" in
+    start)
+        echo "Starting aesdsocket"
+        # Start the daemon
+        # -S: Start
+        # -n: Name of the process
+        # -a: Absolute path to the executable
+        # --: Arguments to pass to the executable (we pass -d for daemon mode)
+        start-stop-daemon -S -n aesdsocket -a /usr/bin/aesdsocket -- -d
+        ;;
+    stop)
+        echo "Stopping aesdsocket"
+        # Stop the daemon
+        # -K: Kill (stops the process)
+        # -n: Name of the process (sends SIGTERM by default)
+        start-stop-daemon -K -n aesdsocket
+        ;;
+    *)
+        echo "Usage: $0 {start|stop}"
+        exit 1
+esac
+
+exit 0
+
