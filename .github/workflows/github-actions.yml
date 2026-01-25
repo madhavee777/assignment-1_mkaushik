@@ -37,12 +37,22 @@ jobs:
       - name: Checkout submodules
         run: git submodule update --init --recursive
           
-      # THIS IS THE UPDATED STEP
       - name: Run full test
         run: |
+          # 1. Clean up any existing config that might conflict
           mkdir -p ~/.ssh
+          rm -f ~/.ssh/known_hosts
+          
+          # 2. Create a "Host *" config that ignores keys (Backup method)
           echo "Host *" > ~/.ssh/config
           echo "  StrictHostKeyChecking no" >> ~/.ssh/config
           echo "  UserKnownHostsFile /dev/null" >> ~/.ssh/config
-          ./full-test.sh
+          chmod 600 ~/.ssh/config
 
+          # 3. SET ENVIRONMENT VARIABLE (Primary Fix)
+          # This forces Buildroot's git commands to use these flags, 
+          # ignoring whatever corrupted files exist on disk.
+          export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
+          # 4. Run the test
+          ./full-test.sh
