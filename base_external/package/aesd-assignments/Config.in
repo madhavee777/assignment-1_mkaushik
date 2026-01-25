@@ -1,5 +1,4 @@
 config BR2_PACKAGE_AESD_ASSIGNMENTS
-	bool "aesd-assignments"
-	help
-
-	  Includes the writer application and scripts for AESD assignments.
+    bool "aesd-assignments"
+    help
+      Includes the aesdsocket assignment code.
