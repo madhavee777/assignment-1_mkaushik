@@ -47,4 +47,7 @@ jobs:
         run: git submodule update --init --recursive
           
       - name: Run full test
-        run: ./full-test.sh
+        run:  |
+            rm -f  ~/.ssh/known_hosts
+            ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+            ./full-test.sh
