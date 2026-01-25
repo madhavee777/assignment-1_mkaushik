@@ -25,36 +25,24 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      # 1. INSTALL DEPENDENCIES FIRST
-      # We added 'openssh-client' here so ssh-agent exists!
       - name: Install missing dependencies
         run: |
           apt-get update
           apt-get install -y file sshpass cpio unzip rsync bc openssh-client
 
-      # 2. NOW LOAD THE KEY (ssh-agent is now installed)
       - uses: webfactory/ssh-agent@v0.5.0
         with:
             ssh-private-key: ${{ secrets.SSH_KEY }}
 
-      # 3. TRUST GITHUB
-      - name: Add GitHub to Known Hosts
-        run: |
-            mkdir -p ~/.ssh
-            rm -f ~/.ssh/known_hosts
-            ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
-
       - name: Checkout submodules
         run: git submodule update --init --recursive
           
+      # THIS IS THE UPDATED STEP
       - name: Run full test
         run: |
-          # Create a config to explicitly ignore Host Key checking
           mkdir -p ~/.ssh
           echo "Host *" > ~/.ssh/config
           echo "  StrictHostKeyChecking no" >> ~/.ssh/config
           echo "  UserKnownHostsFile /dev/null" >> ~/.ssh/config
-          
-          # Run the actual test
           ./full-test.sh
 
