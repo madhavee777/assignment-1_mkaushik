@@ -1,3 +1,4 @@
+
 name: assignment-test
 
 on:
@@ -47,7 +48,13 @@ jobs:
         run: git submodule update --init --recursive
           
       - name: Run full test
-        run:  |
-            rm -f  ~/.ssh/known_hosts
-            ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
-            ./full-test.sh
+        run: |
+          # Create a config to explicitly ignore Host Key checking
+          mkdir -p ~/.ssh
+          echo "Host *" > ~/.ssh/config
+          echo "  StrictHostKeyChecking no" >> ~/.ssh/config
+          echo "  UserKnownHostsFile /dev/null" >> ~/.ssh/config
+          
+          # Run the actual test
+          ./full-test.sh
+
