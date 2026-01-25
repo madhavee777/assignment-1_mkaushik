@@ -18,34 +18,82 @@ jobs:
       - name: Run unit test
         run: ./unit-test.sh
 
-  full-test:
+ full-test:
     container: cuaesd/aesd-autotest:24-assignment5
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       
-      - name: Checkout submodules
-        run: git submodule update --init --recursive
+      # 1. INSTALL DEPENDENCIES FIRST
+      # We added 'openssh-client' here so ssh-agent exists!
+      - name: Install missing dependencies
+        run: |
+          apt-get update
+          apt-get install -y file sshpass cpio unzip rsync bc openssh-client
 
-      # --- START NEW SECTION ---
-      # 1. Load the SSH Key (This uses the secret you created)
+      # 2. NOW LOAD THE KEY (ssh-agent is now installed)
       - uses: webfactory/ssh-agent@v0.5.0
         with:
             ssh-private-key: ${{ secrets.SSH_KEY }}
 
-      # 2. Trust GitHub (Fixes "Host key verification failed")
+      # 3. TRUST GITHUB
       - name: Add GitHub to Known Hosts
         run: |
             mkdir -p ~/.ssh
             ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
-      # --- END NEW SECTION ---
 
-      - name: Install missing dependencies
-        run: |
-          apt-get update
-          apt-get install -y file sshpass cpio unzip rsync bc
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
           
       - name: Run full test
         run: ./full-test.sh
 
+name: assignment-test
 
+on:
+  push:
+    tags-ignore:
+      - '*'
+    branches:
+      - '*'
+
+jobs:
+  unit-test:
+    container: cuaesd/aesd-autotest:24-unit-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
+      - name: Run unit test
+        run: ./unit-test.sh
+
+ full-test:
+    container: cuaesd/aesd-autotest:24-assignment5
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      # 1. INSTALL DEPENDENCIES FIRST
+      # We added 'openssh-client' here so ssh-agent exists!
+      - name: Install missing dependencies
+        run: |
+          apt-get update
+          apt-get install -y file sshpass cpio unzip rsync bc openssh-client
+
+      # 2. NOW LOAD THE KEY (ssh-agent is now installed)
+      - uses: webfactory/ssh-agent@v0.5.0
+        with:
+            ssh-private-key: ${{ secrets.SSH_KEY }}
+
+      # 3. TRUST GITHUB
+      - name: Add GitHub to Known Hosts
+        run: |
+            mkdir -p ~/.ssh
+            ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
+          
+      - name: Run full test
+        run: ./full-test.sh
