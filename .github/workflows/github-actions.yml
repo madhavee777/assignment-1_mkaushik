@@ -40,6 +40,7 @@ jobs:
       - name: Add GitHub to Known Hosts
         run: |
             mkdir -p ~/.ssh
+            rm -f ~/.ssh/known_hosts
             ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
 
       - name: Checkout submodules
